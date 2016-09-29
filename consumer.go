@@ -13,11 +13,9 @@ import (
 func NewConsumer(config Config) *Consumer {
 	config.setDefaults()
 
-	svc := kinesis.New(
-		session.New(
-			aws.NewConfig().WithMaxRetries(10),
-		),
-	)
+	svc := kinesis.New(session.New(), &aws.Config{
+		Region: aws.String("us-west-2"),
+	})
 
 	return &Consumer{
 		svc:    svc,
