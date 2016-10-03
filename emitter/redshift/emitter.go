@@ -16,6 +16,7 @@ import (
 type RedshiftEmitter struct {
 	AwsAccessKey       string
 	AwsSecretAccessKey string
+	IAM 			   string
 	Delimiter          string
 	Format             string
 	Jsonpaths          string
@@ -29,7 +30,7 @@ type RedshiftEmitter struct {
 // then issues a copy command to Redshift data store.
 func (e RedshiftEmitter) Emit(s3Key string, b io.ReadSeeker) error {
 	// put contents to S3 Bucket
-	s3 := &Emitter{Bucket: e.S3Bucket}
+	s3 := &Emitter{Bucket: e.S3Bucket, Region: e.S3Region}
 	err := s3.Emit(s3Key, b)
 
 	if err != nil {
@@ -67,8 +68,13 @@ func (e RedshiftEmitter) copyStatement(s3Key string) string {
 	b := new(bytes.Buffer)
 	b.WriteString(fmt.Sprintf("COPY %v ", e.TableName))
 	b.WriteString(fmt.Sprintf("FROM 's3://%v/%v' ", e.S3Bucket, s3Key))
-	b.WriteString(fmt.Sprintf("CREDENTIALS 'aws_access_key_id=%v;", e.AwsAccessKey))
-	b.WriteString(fmt.Sprintf("aws_secret_access_key=%v' ", e.AwsSecretAccessKey))
+
+	if IAM != "" {
+		b.WriteString(fmt.Sprintf("CREDENTIALS '%v' ", e.IAM))
+	} else {
+		b.WriteString(fmt.Sprintf("CREDENTIALS 'aws_access_key_id=%v;", e.AwsAccessKey))
+		b.WriteString(fmt.Sprintf("aws_secret_access_key=%v' ", e.AwsSecretAccessKey))
+	}
 
 	switch e.Format {
 	case "json":
