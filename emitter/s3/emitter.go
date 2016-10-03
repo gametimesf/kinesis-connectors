@@ -29,7 +29,6 @@ func (e Emitter) Emit(s3Key string, b io.ReadSeeker) error {
 	params := &s3.PutObjectInput{
 		Body:        b,
 		Bucket:      aws.String(e.Bucket),
-		ContentType: aws.String("text/plain"),
 		Key:         aws.String(s3Key),
 	}
 

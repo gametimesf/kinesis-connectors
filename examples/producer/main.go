@@ -6,6 +6,7 @@ import (
 	"os"
 
 	"github.com/apex/log"
+	"github.com/aws/aws-sdk-go/aws"
 	"github.com/apex/log/handlers/text"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/kinesis"
@@ -22,7 +23,9 @@ func main() {
 	log.SetLevel(log.DebugLevel)
 
 	// set up producer
-	svc := kinesis.New(session.New())
+	svc := kinesis.New(session.New(), &aws.Config{
+		Region: aws.String("us-west-2"),
+	})
 	p := producer.New(producer.Config{
 		StreamName:  *stream,
 		BacklogSize: 500,
@@ -40,7 +43,7 @@ func main() {
 	// loop over file data
 	b := bufio.NewScanner(f)
 	for b.Scan() {
-		err := p.Put(b.Bytes(), "site")
+		err := p.Put(b.Bytes(), "PartitionKey")
 
 		if err != nil {
 			log.WithError(err).Fatal("error producing")

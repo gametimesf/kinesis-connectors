@@ -1,0 +1,20 @@
+package: github.com/gametimesf/kinesis-connectors
+import:
+- package: github.com/apex/log
+  subpackages:
+  - handlers/text
+- package: github.com/aws/aws-sdk-go
+  version: ^1.4.12
+  subpackages:
+  - aws
+  - aws/session
+  - service/firehose
+  - service/kinesis
+  - service/s3
+- package: github.com/harlow/kinesis-connectors
+  subpackages:
+  - emitter/s3
+- package: github.com/hoisie/redis
+- package: github.com/tj/go-kinesis
+testImport:
+- package: github.com/bmizerany/assert
