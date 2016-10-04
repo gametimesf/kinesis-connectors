@@ -71,7 +71,7 @@ func (e RedshiftEmitter) copyStatement(s3Key string) string {
 	b.WriteString(fmt.Sprintf("FROM 's3://%v/%v' ", e.S3Bucket, s3Key))
 
 	if e.IAMRole != "" {
-		b.WriteString(fmt.Sprintf("CREDENTIALS '%v' ", e.IAM))
+		b.WriteString(fmt.Sprintf("CREDENTIALS '%v' ", e.IAMRole))
 	} else {
 		b.WriteString(fmt.Sprintf("CREDENTIALS 'aws_access_key_id=%v;", e.AwsAccessKey))
 		b.WriteString(fmt.Sprintf("aws_secret_access_key=%v' ", e.AwsSecretAccessKey))
