@@ -27,14 +27,18 @@ type RedshiftEmitter struct {
 
 // Emit is invoked when the buffer is full. This method leverages the S3Emitter and
 // then issues a copy command to Redshift data store.
-func (e RedshiftEmitter) Emit(s3Key string, b io.ReadSeeker) {
+func (e RedshiftEmitter) Emit(s3Key string, b io.ReadSeeker) error {
 	// put contents to S3 Bucket
 	s3 := &Emitter{Bucket: e.S3Bucket}
-	s3.Emit(s3Key, b)
+	err := s3.Emit(s3Key, b)
+
+	if err != nil {
+		return err
+	}
 
 	for i := 0; i < 10; i++ {
 		// execute copy statement
-		_, err := e.Db.Exec(e.copyStatement(s3Key))
+		_, err = e.Db.Exec(e.copyStatement(s3Key))
 
 		// db command succeeded, break from loop
 		if err == nil {
@@ -50,6 +54,12 @@ func (e RedshiftEmitter) Emit(s3Key string, b io.ReadSeeker) {
 			break
 		}
 	}
+
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
 // Creates the SQL copy statement issued to Redshift cluster.
