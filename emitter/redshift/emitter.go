@@ -1,4 +1,4 @@
-package redshift
+package connector
 
 import (
 	"bytes"

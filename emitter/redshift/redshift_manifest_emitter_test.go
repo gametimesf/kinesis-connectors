@@ -1,4 +1,4 @@
-package redshift
+package redshiftemitter
 
 import "testing"
 
