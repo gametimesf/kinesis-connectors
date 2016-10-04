@@ -16,12 +16,13 @@ import (
 type RedshiftEmitter struct {
 	AwsAccessKey       string
 	AwsSecretAccessKey string
-	IAM 			   string
+	IAMRole			   string
 	Delimiter          string
 	Format             string
 	Jsonpaths          string
 	S3Bucket           string
 	S3Prefix           string
+	S3Region		   string
 	TableName          string
 	Db                 *sql.DB
 }
@@ -69,7 +70,7 @@ func (e RedshiftEmitter) copyStatement(s3Key string) string {
 	b.WriteString(fmt.Sprintf("COPY %v ", e.TableName))
 	b.WriteString(fmt.Sprintf("FROM 's3://%v/%v' ", e.S3Bucket, s3Key))
 
-	if IAM != "" {
+	if e.IAMRole != "" {
 		b.WriteString(fmt.Sprintf("CREDENTIALS '%v' ", e.IAM))
 	} else {
 		b.WriteString(fmt.Sprintf("CREDENTIALS 'aws_access_key_id=%v;", e.AwsAccessKey))
