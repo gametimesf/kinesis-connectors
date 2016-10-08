@@ -7,20 +7,19 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/kinesis"
+	"github.com/hoisie/redis"
 )
 
 // NewConsumer creates a new consumer with initialied kinesis connection
-func NewConsumer(config Config) *Consumer {
+func NewConsumer(config Config, redisClient redis.Client) *Consumer {
 	config.setDefaults()
 
-	svc := kinesis.New( session.New(
- 			aws.NewConfig().WithMaxRetries(10),
- 		),
- 	)
+	svc := kinesis.New(session.New(aws.NewConfig().WithMaxRetries(10)))
 
 	return &Consumer{
-		svc:    svc,
-		Config: config,
+		svc:         svc,
+		Config:      config,
+		RedisClient: redisClient,
 	}
 }
 
@@ -56,6 +55,7 @@ func (c *Consumer) handlerLoop(shardID string, handler Handler) {
 	checkpoint := &Checkpoint{
 		AppName:    c.AppName,
 		StreamName: c.StreamName,
+		Client:     c.RedisClient,
 	}
 
 	params := &kinesis.GetShardIteratorInput{

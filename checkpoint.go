@@ -11,8 +11,8 @@ import (
 type Checkpoint struct {
 	AppName    string
 	StreamName string
+	Client     redis.Client
 
-	client         redis.Client
 	sequenceNumber string
 }
 
