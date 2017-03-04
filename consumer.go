@@ -62,7 +62,48 @@ func (c *Consumer) handlerLoop(shardID string, handler Handler) {
 		MaxRecordCount: c.BufferSize,
 		shardID:        shardID,
 	}
+	ctx := c.Logger.WithFields(log.Fields{
+		"shard": shardID,
+	})
+	shardIterator := c.getShardIterator(shardID)
 
+	ctx.Info("processing")
+
+	for {
+		resp, err := c.svc.GetRecords(
+			&kinesis.GetRecordsInput{
+				ShardIterator: shardIterator,
+			},
+		)
+
+		if err != nil {
+			c.Logger.WithError(err).Error("GetRecords")
+			shardIterator = c.getShardIterator(shardID)
+			continue
+		}
+
+		if len(resp.Records) > 0 {
+			for _, r := range resp.Records {
+				buf.AddRecord(r)
+
+				if buf.ShouldFlush() {
+					handler.HandleRecords(*buf)
+					ctx.WithField("count", buf.RecordCount()).Info("flushed")
+					c.Checkpoint.SetCheckpoint(shardID, buf.LastSeq())
+					buf.Flush()
+				}
+			}
+		}
+
+		if resp.NextShardIterator == aws.String("") || shardIterator == resp.NextShardIterator {
+			shardIterator = c.getShardIterator(shardID)
+		} else {
+			shardIterator = resp.NextShardIterator
+		}
+	}
+}
+
+func (c *Consumer) getShardIterator(shardID string) *string {
 	params := &kinesis.GetShardIteratorInput{
 		ShardId:    aws.String(shardID),
 		StreamName: aws.String(c.StreamName),
@@ -81,41 +122,5 @@ func (c *Consumer) handlerLoop(shardID string, handler Handler) {
 		os.Exit(1)
 	}
 
-	shardIterator := resp.ShardIterator
-
-	ctx := c.Logger.WithFields(log.Fields{
-		"shard": shardID,
-	})
-
-	ctx.Info("processing")
-
-	for {
-		resp, err := c.svc.GetRecords(
-			&kinesis.GetRecordsInput{
-				ShardIterator: shardIterator,
-			},
-		)
-
-		if err != nil {
-			log.Fatalf("Error GetRecords %v", err)
-		}
-
-		if len(resp.Records) > 0 {
-			for _, r := range resp.Records {
-				buf.AddRecord(r)
-
-				if buf.ShouldFlush() {
-					handler.HandleRecords(*buf)
-					ctx.WithField("count", buf.RecordCount()).Info("flushed")
-					c.Checkpoint.SetCheckpoint(shardID, buf.LastSeq())
-					buf.Flush()
-				}
-			}
-		} else if resp.NextShardIterator == aws.String("") || shardIterator == resp.NextShardIterator {
-			c.Logger.Error("NextShardIterator")
-			os.Exit(1)
-		}
-
-		shardIterator = resp.NextShardIterator
-	}
+	return resp.ShardIterator
 }
