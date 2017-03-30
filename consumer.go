@@ -77,7 +77,7 @@ func (c *Consumer) handlerLoop(shardID string, handler Handler) {
 		)
 
 		if err != nil {
-			c.Logger.WithError(err).Error("GetRecords")
+			ctx.WithError(err).Error("GetRecords")
 			shardIterator = c.getShardIterator(shardID)
 			continue
 		}
@@ -95,7 +95,7 @@ func (c *Consumer) handlerLoop(shardID string, handler Handler) {
 			}
 		}
 
-		if resp.NextShardIterator == aws.String("") || shardIterator == resp.NextShardIterator {
+		if resp.NextShardIterator == nil || shardIterator == resp.NextShardIterator {
 			shardIterator = c.getShardIterator(shardID)
 		} else {
 			shardIterator = resp.NextShardIterator
@@ -117,6 +117,7 @@ func (c *Consumer) getShardIterator(shardID string) *string {
 	}
 
 	resp, err := c.svc.GetShardIterator(params)
+
 	if err != nil {
 		c.Logger.WithError(err).Error("GetShardIterator")
 		os.Exit(1)
