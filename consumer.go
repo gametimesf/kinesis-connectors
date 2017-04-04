@@ -100,8 +100,6 @@ func (c *Consumer) handlerLoop(shardID string, handler Handler) {
 			}
 		}
 
-		c.Logger.WithField("iterator", resp.NextShardIterator).Info("NextShardIterator")
-
 		if resp.NextShardIterator != nil && resp.NextShardIterator != aws.String("") && shardIterator != resp.NextShardIterator {
 			shardIterator = resp.NextShardIterator
 		}
