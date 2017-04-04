@@ -65,11 +65,17 @@ func (c *Consumer) handlerLoop(shardID string, handler Handler) {
 	ctx := c.Logger.WithFields(log.Fields{
 		"shard": shardID,
 	})
-	shardIterator := c.getShardIterator(shardID)
 
 	ctx.Info("processing")
 
 	for {
+		shardIterator := c.getShardIterator(shardID)
+
+		if shardIterator == nil {
+			log.Info("empty shard iterator, getting a new one")
+			continue
+		}
+
 		resp, err := c.svc.GetRecords(
 			&kinesis.GetRecordsInput{
 				ShardIterator: shardIterator,
@@ -78,7 +84,6 @@ func (c *Consumer) handlerLoop(shardID string, handler Handler) {
 
 		if err != nil {
 			ctx.WithError(err).Error("GetRecords")
-			shardIterator = c.getShardIterator(shardID)
 			continue
 		}
 
@@ -97,9 +102,7 @@ func (c *Consumer) handlerLoop(shardID string, handler Handler) {
 
 		c.Logger.WithField("iterator", resp.NextShardIterator).Info("NextShardIterator")
 
-		if resp.NextShardIterator == nil && resp.NextShardIterator == aws.String("") || shardIterator == resp.NextShardIterator {
-			shardIterator = c.getShardIterator(shardID)
-		} else {
+		if resp.NextShardIterator != nil && resp.NextShardIterator != aws.String("") && shardIterator != resp.NextShardIterator {
 			shardIterator = resp.NextShardIterator
 		}
 	}
