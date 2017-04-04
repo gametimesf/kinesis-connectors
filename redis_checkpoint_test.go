@@ -26,7 +26,7 @@ func Test_CheckpointLifecycle(t *testing.T) {
 	}
 
 	// get checkpoint
-	if val := c.SequenceNumber(); val != "testSeqNum" {
+	if val := c.SequenceNumber("shard_id"); val != "testSeqNum" {
 		t.Fatalf("checkpoint exists expected %s, got %s", "testSeqNum", val)
 	}
 

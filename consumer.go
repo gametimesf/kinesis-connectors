@@ -111,7 +111,7 @@ func (c *Consumer) getShardIterator(shardID string) *string {
 
 	if c.Checkpoint.CheckpointExists(shardID) {
 		params.ShardIteratorType = aws.String(string(ShardIteratorAfterSequenceNumber))
-		params.StartingSequenceNumber = aws.String(c.Checkpoint.SequenceNumber())
+		params.StartingSequenceNumber = aws.String(c.Checkpoint.SequenceNumber(shardID))
 	} else {
 		params.ShardIteratorType = aws.String(string(c.ShardIteratorType))
 	}

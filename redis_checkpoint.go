@@ -2,7 +2,9 @@ package connector
 
 import (
 	"fmt"
-	"log"
+	"sync"
+
+	"github.com/apex/log"
 
 	"gopkg.in/redis.v5"
 )
@@ -14,8 +16,10 @@ type RedisCheckpoint struct {
 	AppName    string
 	StreamName string
 
-	client         *redis.Client
-	sequenceNumber string
+	client *redis.Client
+
+	sequenceMutex   sync.RWMutex
+	sequenceNumbers map[string]string
 }
 
 // CheckpointExists determines if a checkpoint for a particular Shard exists.
@@ -25,7 +29,10 @@ func (c *RedisCheckpoint) CheckpointExists(shardID string) bool {
 	val, _ := c.client.Get(c.key(shardID)).Result()
 
 	if val != "" {
-		c.sequenceNumber = val
+		c.sequenceMutex.Lock()
+		c.sequenceNumbers[shardID] = val
+		c.sequenceMutex.Unlock()
+
 		return true
 	}
 
@@ -33,18 +40,25 @@ func (c *RedisCheckpoint) CheckpointExists(shardID string) bool {
 }
 
 // SequenceNumber returns the current checkpoint stored for the specified shard.
-func (c *RedisCheckpoint) SequenceNumber() string {
-	return c.sequenceNumber
+func (c *RedisCheckpoint) SequenceNumber(shardID string) string {
+	c.sequenceMutex.RLock()
+	defer c.sequenceMutex.RUnlock()
+
+	return c.sequenceNumbers[shardID]
 }
 
 // SetCheckpoint stores a checkpoint for a shard (e.g. sequence number of last record processed by application).
 // Upon failover, record processing is resumed from this point.
 func (c *RedisCheckpoint) SetCheckpoint(shardID string, sequenceNumber string) {
 	err := c.client.Set(c.key(shardID), sequenceNumber, 0).Err()
+
 	if err != nil {
-		log.Printf("redis checkpoint set error: %v", err)
+		log.WithError(err).Error("redis checkpoint set")
 	}
-	c.sequenceNumber = sequenceNumber
+
+	c.sequenceMutex.Lock()
+	c.sequenceNumbers[shardID] = sequenceNumber
+	c.sequenceMutex.Unlock()
 }
 
 // key generates a unique Redis key for storage of Checkpoint.
