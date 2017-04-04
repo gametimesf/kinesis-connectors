@@ -78,9 +78,10 @@ func (c *Config) setDefaults() {
 			os.Exit(1)
 		}
 		c.Checkpoint = &RedisCheckpoint{
-			AppName:    c.AppName,
-			StreamName: c.StreamName,
-			client:     client,
+			AppName:         c.AppName,
+			StreamName:      c.StreamName,
+			client:          client,
+			sequenceNumbers: make(map[string]string),
 		}
 	}
 
