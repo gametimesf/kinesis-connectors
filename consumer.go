@@ -68,10 +68,11 @@ func (c *Consumer) handlerLoop(shardID string, handler Handler) {
 
 	ctx.Info("processing")
 
-	for {
-		shardIterator := c.getShardIterator(shardID)
+	var shardIterator *string
 
+	for {
 		if shardIterator == nil {
+			shardIterator = c.getShardIterator(shardID)
 			log.Info("empty shard iterator, getting a new one")
 			continue
 		}
@@ -118,6 +119,13 @@ func (c *Consumer) getShardIterator(shardID string) *string {
 	} else {
 		params.ShardIteratorType = aws.String(string(c.ShardIteratorType))
 	}
+
+	log.WithFields(log.Fields{
+		"type":            params.ShardIteratorType,
+		"shard_id":        params.ShardId,
+		"stream":          params.StreamName,
+		"sequence_number": params.StartingSequenceNumber,
+	}).Info("get shard iterator")
 
 	resp, err := c.svc.GetShardIterator(params)
 
