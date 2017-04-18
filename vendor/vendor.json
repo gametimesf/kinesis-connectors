@@ -257,7 +257,7 @@
 			"revisionTime": "2016-01-27T22:38:42Z"
 		},
 		{
-			"checksumSHA1": "QI1tJqI+jMmFrCAKcXs+LefgES4=",
+			"checksumSHA1": "QIMCIYBkEj35leOSdiOfmjTdDgU=",
 			"path": "github.com/tj/go-kinesis",
 			"revision": "817ff40136c6d4909bcff1021e58fdedf788ba23",
 			"revisionTime": "2016-06-02T03:00:41Z"
@@ -305,5 +305,5 @@
 			"revisionTime": "2016-12-03T15:45:52Z"
 		}
 	],
-	"rootPath": "github.com/harlow/kinesis-connectors"
+	"rootPath": "github.com/phacops/kinesis-connectors"
 }
