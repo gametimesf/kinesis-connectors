@@ -85,6 +85,7 @@ func (c *Consumer) handlerLoop(shardID string, handler Handler) {
 
 		if err != nil {
 			ctx.WithField("iterator", shardIterator).WithError(err).Error("GetRecords")
+			shardIterator = nil
 			continue
 		}
 
