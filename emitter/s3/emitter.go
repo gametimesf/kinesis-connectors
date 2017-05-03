@@ -19,7 +19,7 @@ type Emitter struct {
 	Bucket string
 	Region string
 
-	uploader s3manager.Uploader
+	uploader *s3manager.Uploader
 }
 
 func NewEmitter(bucket, region string) *Emitter {
@@ -36,13 +36,11 @@ func NewEmitter(bucket, region string) *Emitter {
 
 // Emit is invoked when the buffer is full. This method emits the set of filtered records.
 func (e *Emitter) Emit(s3Key string, b io.ReadSeeker) error {
-	params := &s3.PutObjectInput{
+	_, err := e.uploader.Upload(&s3manager.UploadInput{
 		Body:   b,
 		Bucket: aws.String(e.Bucket),
 		Key:    aws.String(s3Key),
-	}
-
-	_, err := e.uploader.Upload(params)
+	})
 
 	if err != nil {
 		return err
