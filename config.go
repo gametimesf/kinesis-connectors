@@ -4,9 +4,8 @@ import (
 	"os"
 	"time"
 
-	redis "gopkg.in/redis.v5"
-
 	"github.com/apex/log"
+	"github.com/go-redis/redis"
 )
 
 const (

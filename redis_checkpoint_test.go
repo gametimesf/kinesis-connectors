@@ -3,7 +3,7 @@ package connector
 import (
 	"testing"
 
-	"gopkg.in/redis.v5"
+	"github.com/go-redis/redis"
 )
 
 var defaultAddr = "127.0.0.1:6379"

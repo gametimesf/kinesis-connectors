@@ -5,13 +5,13 @@
   branch = "master"
   name = "github.com/apex/log"
   packages = [".","handlers/text"]
-  revision = "8f3a15d95392c8fc202d1e1059f46df21dff2992"
+  revision = "0296d6eb16bb28f8a0c55668affcf4876dc269be"
 
 [[projects]]
   name = "github.com/aws/aws-sdk-go"
   packages = ["aws","aws/awserr","aws/awsutil","aws/client","aws/client/metadata","aws/corehandlers","aws/credentials","aws/credentials/ec2rolecreds","aws/credentials/endpointcreds","aws/credentials/stscreds","aws/defaults","aws/ec2metadata","aws/endpoints","aws/request","aws/session","aws/signer/v4","internal/shareddefaults","private/protocol","private/protocol/json/jsonutil","private/protocol/jsonrpc","private/protocol/query","private/protocol/query/queryutil","private/protocol/rest","private/protocol/restxml","private/protocol/xml/xmlutil","service/firehose","service/kinesis","service/kinesis/kinesisiface","service/s3","service/s3/s3iface","service/s3/s3manager","service/sts"]
-  revision = "b1a7b51924b90a6ecdbaeb17e96418740ff07a1e"
-  version = "v1.10.8"
+  revision = "19490d4d23f5f6dd8061abf91542af8433d28d63"
+  version = "v1.10.24"
 
 [[projects]]
   branch = "master"
@@ -28,8 +28,14 @@
 [[projects]]
   name = "github.com/go-ini/ini"
   packages = ["."]
-  revision = "d3de07a94d22b4a0972deb4b96d790c2c0ce8333"
-  version = "v1.28.0"
+  revision = "20b96f641a5ea98f2f8619ff4f3e061cff4833bd"
+  version = "v1.28.2"
+
+[[projects]]
+  name = "github.com/go-redis/redis"
+  packages = [".","internal","internal/consistenthash","internal/hashtag","internal/pool","internal/proto"]
+  revision = "89515eebd1b5761486abd32d9e84a8f55dda7740"
+  version = "v6.5.6"
 
 [[projects]]
   name = "github.com/jmespath/go-jmespath"
@@ -59,7 +65,7 @@
   branch = "master"
   name = "github.com/lib/pq"
   packages = [".","oid"]
-  revision = "dd1fe2071026ce53f36a39112e645b4d4f5793a4"
+  revision = "e42267488fe361b9dc034be7a6bffef5b195bceb"
 
 [[projects]]
   name = "github.com/pkg/errors"
@@ -73,15 +79,9 @@
   packages = ["."]
   revision = "28ff32f8b54954f8ea365fa278bcfcec35ec094b"
 
-[[projects]]
-  name = "gopkg.in/redis.v5"
-  packages = [".","internal","internal/consistenthash","internal/hashtag","internal/pool","internal/proto"]
-  revision = "a16aeec10ff407b1e7be6dd35797ccf5426ef0f0"
-  version = "v5.2.9"
-
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "f3c124f28a2bcb1c3b63351b6ab45715f835555a2aa63a78a71fc3cc27286529"
+  inputs-digest = "0f861a6e8af5e27d32e948a7e4902f7a2ed16ea3fa8cb61a38fb8043fd2acbe3"
   solver-name = "gps-cdcl"
   solver-version = 1

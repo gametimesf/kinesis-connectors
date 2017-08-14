@@ -5,8 +5,7 @@ import (
 	"sync"
 
 	"github.com/apex/log"
-
-	"gopkg.in/redis.v5"
+	"github.com/go-redis/redis"
 )
 
 // RedisCheckpoint implements the Checkpont interface.
