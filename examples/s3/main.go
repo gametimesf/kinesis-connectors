@@ -8,8 +8,8 @@ import (
 
 	"github.com/apex/log"
 	"github.com/apex/log/handlers/text"
-	"github.com/harlow/kinesis-connectors"
-	"github.com/harlow/kinesis-connectors/emitter/s3"
+	"github.com/phacops/kinesis-connectors"
+	"github.com/phacops/kinesis-connectors/emitter/s3"
 )
 
 func main() {

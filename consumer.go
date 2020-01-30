@@ -9,6 +9,14 @@ import (
 	"github.com/aws/aws-sdk-go/service/kinesis"
 )
 
+const (
+	ShardIteratorAfterSequenceNumber = "AFTER_SEQUENCE_NUMBER"
+	ShardIteratorAtSequenceNumber    = "AT_SEQUENCE_NUMBER"
+	ShardIteratorAtTimestamp         = "AT_TIMESTAMP"
+	ShardIteratorLatest              = "LATEST"
+	ShardIteratorTrimHorizon         = "TRIM_HORIZON"
+)
+
 // NewConsumer creates a new consumer with initialied kinesis connection
 func NewConsumer(config Config) *Consumer {
 	config.setDefaults()
@@ -52,35 +60,23 @@ func (c *Consumer) Start(handler Handler) {
 func (c *Consumer) handlerLoop(shardID string, handler Handler) {
 	buf := &Buffer{
 		MaxRecordCount: c.BufferSize,
+		shardID:        shardID,
 	}
-
-	params := &kinesis.GetShardIteratorInput{
-		ShardId:    aws.String(shardID),
-		StreamName: aws.String(c.StreamName),
-	}
-
-	if c.Checkpoint.CheckpointExists(shardID) {
-		params.ShardIteratorType = aws.String("AFTER_SEQUENCE_NUMBER")
-		params.StartingSequenceNumber = aws.String(c.Checkpoint.SequenceNumber())
-	} else {
-		params.ShardIteratorType = aws.String("TRIM_HORIZON")
-	}
-
-	resp, err := c.svc.GetShardIterator(params)
-	if err != nil {
-		c.Logger.WithError(err).Error("GetShardIterator")
-		os.Exit(1)
-	}
-
-	shardIterator := resp.ShardIterator
-
 	ctx := c.Logger.WithFields(log.Fields{
 		"shard": shardID,
 	})
 
 	ctx.Info("processing")
 
+	var shardIterator *string
+
 	for {
+		if shardIterator == nil {
+			shardIterator = c.getShardIterator(shardID)
+			log.Info("empty shard iterator, getting a new one")
+			continue
+		}
+
 		resp, err := c.svc.GetRecords(
 			&kinesis.GetRecordsInput{
 				ShardIterator: shardIterator,
@@ -88,7 +84,9 @@ func (c *Consumer) handlerLoop(shardID string, handler Handler) {
 		)
 
 		if err != nil {
-			log.Fatalf("Error GetRecords %v", err)
+			ctx.WithField("iterator", shardIterator).WithError(err).Error("GetRecords")
+			shardIterator = nil
+			continue
 		}
 
 		if len(resp.Records) > 0 {
@@ -102,11 +100,40 @@ func (c *Consumer) handlerLoop(shardID string, handler Handler) {
 					buf.Flush()
 				}
 			}
-		} else if resp.NextShardIterator == aws.String("") || shardIterator == resp.NextShardIterator {
-			c.Logger.Error("NextShardIterator")
-			os.Exit(1)
 		}
 
-		shardIterator = resp.NextShardIterator
+		if resp.NextShardIterator != nil && shardIterator != resp.NextShardIterator {
+			shardIterator = resp.NextShardIterator
+		}
 	}
+}
+
+func (c *Consumer) getShardIterator(shardID string) *string {
+	params := &kinesis.GetShardIteratorInput{
+		ShardId:    aws.String(shardID),
+		StreamName: aws.String(c.StreamName),
+	}
+
+	if c.Checkpoint.CheckpointExists(shardID) {
+		params.ShardIteratorType = aws.String(string(ShardIteratorAfterSequenceNumber))
+		params.StartingSequenceNumber = aws.String(c.Checkpoint.SequenceNumber(shardID))
+	} else {
+		params.ShardIteratorType = aws.String(string(c.ShardIteratorType))
+	}
+
+	log.WithFields(log.Fields{
+		"type":            params.ShardIteratorType,
+		"shard_id":        params.ShardId,
+		"stream":          params.StreamName,
+		"sequence_number": params.StartingSequenceNumber,
+	}).Info("get shard iterator")
+
+	resp, err := c.svc.GetShardIterator(params)
+
+	if err != nil {
+		c.Logger.WithError(err).Error("GetShardIterator")
+		os.Exit(1)
+	}
+
+	return resp.ShardIterator
 }
