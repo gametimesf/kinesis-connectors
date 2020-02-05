@@ -35,6 +35,9 @@ type Config struct {
 
 	// Shard Iterator if not checkpoint
 	ShardIteratorType string
+
+	// URL for Redis Checkpoint for tracking progress of consumer. Defaults to 127.0.0.1:6379
+	RedisURL string
 }
 
 // defaults for configuration.
@@ -70,8 +73,12 @@ func (c *Config) setDefaults() {
 		c.FlushInterval = time.Second
 	}
 
+	if c.RedisURL == "" {
+		c.RedisURL = defaultRedisAddr
+	}
+
 	if c.Checkpoint == nil {
-		client, err := redisClient()
+		client, err := redisClient(c.RedisURL)
 		if err != nil {
 			c.Logger.WithError(err).Error("Redis connection failed")
 			os.Exit(1)
@@ -96,11 +103,7 @@ func (c *Config) setDefaults() {
 	}
 }
 
-func redisClient() (*redis.Client, error) {
-	redisURL := os.Getenv("REDIS_URL")
-	if redisURL == "" {
-		redisURL = defaultRedisAddr
-	}
+func redisClient(redisURL string) (*redis.Client, error) {
 	client := redis.NewClient(&redis.Options{
 		Addr: redisURL,
 	})

@@ -38,11 +38,7 @@ func main() {
 
 ### Config
 
-The default behavior for checkpointing uses Redis on localhost. To set a custom Redis URL use ENV vars:
-
-```
-REDIS_URL=my-custom-redis-server.com:6379
-```
+The default behavior for checkpointing uses Redis on localhost. To set a custom Redis URL pass the RedisURL into the config struct
 
 ### Logging
 
