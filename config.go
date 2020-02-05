@@ -4,9 +4,8 @@ import (
 	"os"
 	"time"
 
-	redis "gopkg.in/redis.v5"
-
 	"github.com/apex/log"
+	"github.com/go-redis/redis"
 )
 
 const (
@@ -33,6 +32,9 @@ type Config struct {
 
 	// Checkpoint for tracking progress of consumer.
 	Checkpoint Checkpoint
+
+	// Shard Iterator if not checkpoint
+	ShardIteratorType string
 }
 
 // defaults for configuration.
@@ -75,9 +77,21 @@ func (c *Config) setDefaults() {
 			os.Exit(1)
 		}
 		c.Checkpoint = &RedisCheckpoint{
-			AppName:    c.AppName,
-			StreamName: c.StreamName,
-			client:     client,
+			AppName:         c.AppName,
+			StreamName:      c.StreamName,
+			client:          client,
+			sequenceNumbers: make(map[string]string),
+		}
+	}
+
+	if c.ShardIteratorType == "" {
+		switch c.ShardIteratorType {
+		case ShardIteratorAfterSequenceNumber:
+			c.ShardIteratorType = ShardIteratorAfterSequenceNumber
+		case ShardIteratorLatest:
+			c.ShardIteratorType = ShardIteratorLatest
+		default:
+			c.ShardIteratorType = ShardIteratorTrimHorizon
 		}
 	}
 }

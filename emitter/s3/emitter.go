@@ -6,6 +6,7 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/s3"
+	"github.com/aws/aws-sdk-go/service/s3/s3manager"
 )
 
 // Emitter stores data in S3 bucket.
@@ -17,23 +18,29 @@ import (
 type Emitter struct {
 	Bucket string
 	Region string
+
+	uploader *s3manager.Uploader
+}
+
+func NewEmitter(bucket, region string) *Emitter {
+	client := s3.New(
+		session.New(aws.NewConfig().WithMaxRetries(10)),
+		aws.NewConfig().WithRegion(region),
+	)
+	return &Emitter{
+		Bucket:   bucket,
+		Region:   region,
+		uploader: s3manager.NewUploaderWithClient(client),
+	}
 }
 
 // Emit is invoked when the buffer is full. This method emits the set of filtered records.
-func (e Emitter) Emit(s3Key string, b io.ReadSeeker) error {
-	svc := s3.New(
-		session.New(aws.NewConfig().WithMaxRetries(10)),
-		aws.NewConfig().WithRegion(e.Region),
-	)
-
-	params := &s3.PutObjectInput{
-		Body:        b,
-		Bucket:      aws.String(e.Bucket),
-		ContentType: aws.String("text/plain"),
-		Key:         aws.String(s3Key),
-	}
-
-	_, err := svc.PutObject(params)
+func (e *Emitter) Emit(s3Key string, b io.ReadSeeker) error {
+	_, err := e.uploader.Upload(&s3manager.UploadInput{
+		Body:   b,
+		Bucket: aws.String(e.Bucket),
+		Key:    aws.String(s3Key),
+	})
 
 	if err != nil {
 		return err

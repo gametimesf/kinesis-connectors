@@ -3,7 +3,7 @@ package connector
 import (
 	"testing"
 
-	"gopkg.in/redis.v5"
+	"github.com/go-redis/redis"
 )
 
 var defaultAddr = "127.0.0.1:6379"
@@ -26,7 +26,7 @@ func Test_CheckpointLifecycle(t *testing.T) {
 	}
 
 	// get checkpoint
-	if val := c.SequenceNumber(); val != "testSeqNum" {
+	if val := c.SequenceNumber("shard_id"); val != "testSeqNum" {
 		t.Fatalf("checkpoint exists expected %s, got %s", "testSeqNum", val)
 	}
 

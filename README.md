@@ -74,18 +74,7 @@ Which will producde the following logs:
 
 Get the package source:
 
-    $ go get github.com/harlow/kinesis-connectors
-
-### Fetching Dependencies
-
-Install `govendor`:
-
-    $ export GO15VENDOREXPERIMENT=1
-    $ go get -u github.com/kardianos/govendor
-
-Install dependencies into `./vendor/`:
-
-    $ govendor sync
+    $ go get github.com/gametimesf/kinesis-connectors
 
 ### Examples
 
