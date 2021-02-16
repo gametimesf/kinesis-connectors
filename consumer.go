@@ -21,10 +21,13 @@ const (
 func NewConsumer(config Config) *Consumer {
 	config.setDefaults()
 
+	awsConfig := aws.NewConfig().WithMaxRetries(config.MaxRetries)
+	if config.KinesisURL != "" {
+		awsConfig = awsConfig.WithEndpoint(config.KinesisURL)
+	}
+
 	svc := kinesis.New(
-		session.New(
-			aws.NewConfig().WithMaxRetries(10),
-		),
+		session.New(awsConfig),
 	)
 
 	return &Consumer{

@@ -10,6 +10,7 @@ import (
 
 const (
 	defaultBufferSize = 500
+	defaultRetryLimit = 10
 	defaultRedisAddr  = "127.0.0.1:6379"
 )
 
@@ -27,6 +28,9 @@ type Config struct {
 	// BufferSize determines the batch request size. Must not exceed 500. Defaults to 500.
 	BufferSize int
 
+	// MaxRetries sets the Kinesis client's retry limit. Deafults to 10.
+	MaxRetries int
+
 	// Logger is the logger used. Defaults to log.Log.
 	Logger log.Interface
 
@@ -38,6 +42,9 @@ type Config struct {
 
 	// URL for Redis Checkpoint for tracking progress of consumer. Defaults to 127.0.0.1:6379
 	RedisURL string
+
+	// URL for Kinesis, used for local development. Defaults to empty and is discovered by the Kinesis client.
+	KinesisURL string
 }
 
 // defaults for configuration.
@@ -71,6 +78,10 @@ func (c *Config) setDefaults() {
 
 	if c.FlushInterval == 0 {
 		c.FlushInterval = time.Second
+	}
+
+	if c.MaxRetries == 0 {
+		c.MaxRetries = defaultRetryLimit
 	}
 
 	if c.RedisURL == "" {
